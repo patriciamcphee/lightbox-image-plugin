@@ -1,0 +1,46 @@
+{
+  "name": "image-zoom-plugin",
+  "version": "1.0.0",
+  "description": "Image zoom plugin for Docusaurus 3.x",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "client.js"
+  ],
+  "scripts": {
+    "test": "echo \"No tests specified\"",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{js,json,md}\""
+  },
+  "keywords": [
+    "docusaurus",
+    "plugin",
+    "image",
+    "zoom",
+    "image-zoom-plugin"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "@docusaurus/core": "^3.0.0",
+    "@docusaurus/ExecutionEnvironment": "^3.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@docusaurus/core": "^3.0.0",
+    "@docusaurus/ExecutionEnvironment": "^3.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "engines": {
+    "node": ">=18.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "file:./plugins/image-zoom-plugin"
+  },
+  "private": true
+}
