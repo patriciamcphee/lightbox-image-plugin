@@ -1,16 +1,14 @@
-/**
- * Copyright (c) Patricia McPhee.
- *
- * This source code is licensed under the MIT license.
- */
-
+// lib/client/index.js or src/client/index.js
 import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
 
 if (ExecutionEnvironment.canUseDOM) {
+  let initialized = false;
+  let activeZoom = null;
+  let isTransitioning = false;
+  let observer = null;
+
   function initImageZoom() {
     const options = window.__IMAGE_ZOOM_OPTIONS__ || {};
-    let activeZoom = null;
-    let isTransitioning = false;
 
     function processImages() {
       const images = document.querySelectorAll(options.selector);
@@ -28,97 +26,97 @@ if (ExecutionEnvironment.canUseDOM) {
 
         // Skip tiny images (likely icons)
         if (img.naturalWidth < 100 || img.naturalHeight < 100) {
+          // If image not loaded yet, wait for it
+          if (!img.complete) {
+            img.addEventListener('load', () => {
+              if (img.naturalWidth >= 100 && img.naturalHeight >= 100) {
+                wrapImage(img);
+              }
+            });
+          }
           return;
         }
 
-        // Mark as processed
-        img.dataset.zoomProcessed = 'true';
+        wrapImage(img);
+      });
+    }
 
-        // Wrap image for zoom functionality
-        const wrapper = document.createElement('div');
-        wrapper.className = 'zoom-img-wrap';
-        wrapper.tabIndex = 0; // Make keyboard accessible
-        wrapper.setAttribute('role', 'button');
-        wrapper.setAttribute('aria-label', 'Click to zoom image');
-        
-        // Preserve any existing classes on the image
-        if (img.className) {
-          wrapper.className += ' ' + img.className.replace(/\s+/g, '-wrap ') + '-wrap';
-        }
+    function wrapImage(img) {
+      // Mark as processed
+      img.dataset.zoomProcessed = 'true';
 
-        img.parentNode.insertBefore(wrapper, img);
-        wrapper.appendChild(img);
+      // Wrap image for zoom functionality
+      const wrapper = document.createElement('div');
+      wrapper.className = 'zoom-img-wrap';
+      wrapper.tabIndex = 0;
+      wrapper.setAttribute('role', 'button');
+      wrapper.setAttribute('aria-label', 'Click to zoom image');
+      
+      if (img.className) {
+        wrapper.className += ' ' + img.className.replace(/\s+/g, '-wrap ') + '-wrap';
+      }
 
-        // Add loading state for large images
-        if (!img.complete) {
-          wrapper.classList.add('loading');
-          img.addEventListener('load', () => {
-            wrapper.classList.remove('loading');
-          });
-        }
+      img.parentNode.insertBefore(wrapper, img);
+      wrapper.appendChild(img);
 
-        // Add click handler
-        const clickHandler = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (!isTransitioning) {
-            openZoom(img);
-          }
-        };
-
-        wrapper.addEventListener('click', clickHandler);
-        
-        // Add keyboard handler
-        wrapper.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            clickHandler(e);
-          }
+      // Add loading state for large images
+      if (!img.complete) {
+        wrapper.classList.add('loading');
+        img.addEventListener('load', () => {
+          wrapper.classList.remove('loading');
         });
+      }
+
+      // Add click handler
+      const clickHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isTransitioning) {
+          openZoom(img);
+        }
+      };
+
+      wrapper.addEventListener('click', clickHandler);
+      
+      // Add keyboard handler
+      wrapper.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          clickHandler(e);
+        }
       });
     }
 
     function openZoom(img) {
       if (isTransitioning) return;
       
-      // Clean up any existing zoom
       closeZoom();
 
       isTransitioning = true;
 
-      // Create overlay
       const overlay = document.createElement('div');
       overlay.className = 'zoom-overlay';
       overlay.setAttribute('role', 'dialog');
       overlay.setAttribute('aria-modal', 'true');
       overlay.setAttribute('aria-label', 'Zoomed image view');
 
-      // Create zoomed image
       const zoomedImg = document.createElement('img');
-      
-      // Use high-res source if available
       const highResSrc = img.dataset.zoomSrc || img.src;
       zoomedImg.src = highResSrc;
-      
       zoomedImg.className = 'zoomed-img';
       zoomedImg.alt = img.alt || 'Zoomed image';
       
-      // Copy srcset if available
       if (img.srcset) {
         zoomedImg.srcset = img.srcset;
       }
 
-      // Add to DOM
       document.body.appendChild(overlay);
       document.body.appendChild(zoomedImg);
 
-      // Store active zoom elements
       activeZoom = { overlay, zoomedImg };
 
-      // Lock body scroll
       document.body.style.overflow = 'hidden';
 
-      // Trigger animation after a frame
       requestAnimationFrame(() => {
         overlay.classList.add('active');
         zoomedImg.classList.add('active');
@@ -127,7 +125,6 @@ if (ExecutionEnvironment.canUseDOM) {
         }, 300);
       });
 
-      // Close handlers
       const closeHandler = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -139,7 +136,6 @@ if (ExecutionEnvironment.canUseDOM) {
       overlay.addEventListener('click', closeHandler);
       zoomedImg.addEventListener('click', closeHandler);
 
-      // Keyboard handlers
       const keyHandler = (e) => {
         if (e.key === 'Escape') {
           closeZoom();
@@ -147,10 +143,7 @@ if (ExecutionEnvironment.canUseDOM) {
       };
       document.addEventListener('keydown', keyHandler);
       
-      // Store handler for cleanup
       activeZoom.keyHandler = keyHandler;
-
-      // Focus trap
       zoomedImg.focus();
     }
 
@@ -161,19 +154,15 @@ if (ExecutionEnvironment.canUseDOM) {
 
       const { overlay, zoomedImg, keyHandler } = activeZoom;
 
-      // Remove active classes
       overlay.classList.remove('active');
       zoomedImg.classList.remove('active');
 
-      // Restore body scroll
       document.body.style.overflow = '';
 
-      // Remove keyboard handler
       if (keyHandler) {
         document.removeEventListener('keydown', keyHandler);
       }
 
-      // Remove elements after animation
       setTimeout(() => {
         overlay?.remove();
         zoomedImg?.remove();
@@ -183,12 +172,35 @@ if (ExecutionEnvironment.canUseDOM) {
       activeZoom = null;
     }
 
-    // Initialize on page load
+    // Clean up function
+    function cleanup() {
+      // Mark all images as unprocessed for reprocessing
+      document.querySelectorAll('[data-zoom-processed="true"]').forEach(img => {
+        img.dataset.zoomProcessed = 'false';
+      });
+      
+      // Remove any existing wrappers
+      document.querySelectorAll('.zoom-img-wrap').forEach(wrapper => {
+        const img = wrapper.querySelector('img');
+        if (img && wrapper.parentNode) {
+          wrapper.parentNode.insertBefore(img, wrapper);
+          wrapper.remove();
+        }
+      });
+
+      // Close any open zoom
+      closeZoom();
+    }
+
+    // Initialize images
     processImages();
 
-    // Re-process when DOM changes (for dynamically loaded content)
-    const observer = new MutationObserver((mutations) => {
-      // Check if any mutations added images
+    // Set up MutationObserver for dynamically added content
+    if (observer) {
+      observer.disconnect();
+    }
+    
+    observer = new MutationObserver((mutations) => {
       const hasNewImages = mutations.some(mutation => {
         return Array.from(mutation.addedNodes).some(node => {
           return node.nodeType === 1 && (
@@ -199,7 +211,7 @@ if (ExecutionEnvironment.canUseDOM) {
       });
 
       if (hasNewImages) {
-        processImages();
+        setTimeout(processImages, 100);
       }
     });
 
@@ -208,31 +220,102 @@ if (ExecutionEnvironment.canUseDOM) {
       subtree: true
     });
 
-    // Clean up on navigation
-    window.addEventListener('popstate', closeZoom);
-    
-    // Handle route changes in SPA
-    if (window.navigation) {
-      window.navigation.addEventListener('navigate', closeZoom);
-    }
+    // Return cleanup function
+    return cleanup;
+  }
 
-    // Cleanup function for HMR and navigation
-    if (module.hot) {
-      module.hot.dispose(() => {
-        closeZoom();
-        observer.disconnect();
-        window.removeEventListener('popstate', closeZoom);
+  // Function to initialize or reinitialize
+  function setupImageZoom() {
+    // Wait a bit for DOM to stabilize
+    setTimeout(() => {
+      initImageZoom();
+    }, 100);
+  }
+
+  // Initial setup
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupImageZoom);
+  } else {
+    setupImageZoom();
+  }
+
+  // CRITICAL FIX: Listen for Docusaurus route changes
+  // Docusaurus uses React Router which doesn't trigger popstate on navigation
+  
+  // Method 1: Use Docusaurus/React Router lifecycle events
+  if (typeof window !== 'undefined') {
+    // Re-initialize on route changes
+    let lastPathname = window.location.pathname;
+    
+    // Check for route changes using a more reliable method
+    const checkForRouteChange = () => {
+      if (window.location.pathname !== lastPathname) {
+        lastPathname = window.location.pathname;
+        // Clean up and reinitialize
+        setupImageZoom();
+      }
+    };
+
+    // Poll for route changes (most reliable for SPAs)
+    setInterval(checkForRouteChange, 100);
+
+    // Also listen to popstate for browser back/forward
+    window.addEventListener('popstate', setupImageZoom);
+
+    // Listen for pushstate/replacestate
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    history.pushState = function() {
+      originalPushState.apply(history, arguments);
+      setTimeout(setupImageZoom, 100);
+    };
+
+    history.replaceState = function() {
+      originalReplaceState.apply(history, arguments);
+      setTimeout(setupImageZoom, 100);
+    };
+  }
+
+  // Method 2: Hook into Docusaurus lifecycle if available
+  if (window.__docusaurus) {
+    const { onRouteUpdate } = window.__docusaurus;
+    if (onRouteUpdate) {
+      onRouteUpdate(() => {
+        setupImageZoom();
       });
     }
   }
 
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(initImageZoom, 100);
+  // Method 3: Use MutationObserver on the main content area
+  const contentObserver = new MutationObserver((mutations) => {
+    // Check if the main content has changed significantly
+    const hasSignificantChange = mutations.some(mutation => {
+      return mutation.target.classList?.contains('main-wrapper') ||
+             mutation.target.classList?.contains('docMainContainer') ||
+             mutation.target.tagName === 'MAIN' ||
+             mutation.target.tagName === 'ARTICLE';
     });
-  } else {
-    setTimeout(initImageZoom, 100);
+
+    if (hasSignificantChange) {
+      setTimeout(setupImageZoom, 200);
+    }
+  });
+
+  // Observe changes to the main content area
+  const mainContent = document.querySelector('main') || document.querySelector('.main-wrapper') || document.body;
+  contentObserver.observe(mainContent, {
+    childList: true,
+    subtree: true
+  });
+
+  // Cleanup for HMR
+  if (module.hot) {
+    module.hot.dispose(() => {
+      if (observer) observer.disconnect();
+      contentObserver.disconnect();
+      closeZoom();
+    });
   }
 }
 
