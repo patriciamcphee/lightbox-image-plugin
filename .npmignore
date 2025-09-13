@@ -1,0 +1,10 @@
+src
+scripts
+.gitignore
+.editorconfig
+*.log
+.idea
+.vscode
+coverage
+*.tgz
+CONTRIBUTING.md
