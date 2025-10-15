@@ -16,11 +16,11 @@ A lightweight, zero-dependency image zoom plugin for Docusaurus 3.x that adds sm
 ## Installation
 
 ```bash
-npm install light-image-plugin
+npm install lightbox-image-plugin
 # or
-yarn add light-image-plugin
+yarn add lightbox-image-plugin
 # or
-pnpm add light-image-plugin
+pnpm add lightbox-image-plugin
 ```
 
 ## Quick Start
@@ -31,7 +31,7 @@ Add to your `docusaurus.config.js`:
 module.exports = {
   plugins: [
     [
-      'light-image-plugin',
+      'lightbox-image-plugin',
       {
         selector: '.markdown img',           // CSS selector for images
         background: 'rgba(0, 0, 0, 0.8)',   // Overlay background
@@ -155,7 +155,7 @@ Override default styles in your custom CSS:
 }
 ```
 
-## Why "Light"?
+## Why "Lightbox"?
 
 - **Zero dependencies** - No external libraries required
 - **Minimal footprint** - ~3KB minified
@@ -234,7 +234,7 @@ Try using a more specific selector:
 
 ## Comparison
 
-| Feature | light-image-plugin | medium-zoom | react-medium-image-zoom |
+| Feature | lightbox-image-plugin | medium-zoom | react-medium-image-zoom |
 |---------|-------------------|-------------|------------------------|
 | Zero dependencies | ✅ | ❌ | ❌ |
 | Bundle size | ~3KB | ~7KB | ~15KB |
@@ -253,9 +253,9 @@ MIT &copy; Patricia McPhee
 
 ## Links
 
-- [npm Package](https://www.npmjs.com/package/light-image-plugin)
-- [GitHub Repository](https://github.com/patriciamcphee/light-image-plugin)
-- [Report Issues](https://github.com/patriciamcphee/light-image-plugin/issues)
+- [npm Package](https://www.npmjs.com/package/lightbox-image-plugin)
+- [GitHub Repository](https://github.com/patriciamcphee/lightbox-image-plugin)
+- [Report Issues](https://github.com/patriciamcphee/lightbox-image-plugin/issues)
 
 ## Changelog
 
