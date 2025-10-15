@@ -1,4 +1,4 @@
-# light-image-plugin
+# lightbox-image-plugin
 
 A lightweight, zero-dependency image zoom plugin for Docusaurus 3.x that adds smooth click-to-zoom functionality to documentation images.
 
