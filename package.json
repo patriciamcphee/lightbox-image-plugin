@@ -1,6 +1,6 @@
 {
   "name": "lightbox-image-plugin",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Click-to-zoom functionality for images in Docusaurus 3.x documentation",
   "keywords": [
     "docusaurus",
